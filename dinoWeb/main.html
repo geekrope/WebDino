@@ -1,0 +1,196 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+    <script>
+        var jumping = false;
+        var adjoin = false;
+        var salto = false;
+        var frame = 0;
+        var night = false;
+        const ground = 400;
+        var frames = 60;
+        var jumpHeight = 250;
+        var angle = 0;
+        var walk1 = new Image();
+        var walk2 = new Image();
+        var walk3 = new Image();
+        var cactus = new Image();
+        var currentRes = null;
+        var resInd = 0;
+        var tick = 0;
+        var a = 100;
+        var speed = 10;
+        const cactusSpawnX = 1920;
+        let cactuses = [];
+        var colider = {
+            x: 100,
+            y: ground,
+            width: a,
+            height: a
+        }
+        function LoadResources() {
+            walk1.src = "dinoSprites/walk1.png";
+            walk2.src = "dinoSprites/walk2.png";
+            walk3.src = "dinoSprites/walk3.png";
+            cactus.src = "dinoSprites/cactus1.png";
+        }
+        function Start() {
+            cactuses = [];
+            LoadResources();
+            var cnv = document.getElementById("cnvs");
+            document.onkeydown = function (e) {
+                if (e.keyCode == "32") {
+                    jumping = true;
+                }
+                if (e.keyCode == "83") {
+                    salto = true;
+                }
+            }
+        }
+        function Draw() {
+            var ctx = document.getElementById("cnvs").getContext('2d');
+            if (!night) {
+                ctx.fillStyle = "#ffffff";
+                ctx.fillRect(0, 0, innerWidth, innerHeight);
+            }
+            ctx.fillStyle = "#0000ff";
+            ctx.fillRect(colider.x, colider.y, colider.width, colider.height);
+            ctx.save();
+            ctx.translate(colider.x + colider.width / 2, colider.y + colider.height / 2);
+            ctx.rotate(angle / 180 * Math.PI);
+            ctx.translate(-colider.x - colider.width / 2, -colider.y - colider.height / 2);
+            ctx.drawImage(currentRes, colider.x, colider.y, currentRes.width / currentRes.height * colider.height, colider.height);      
+            ctx.restore();
+            for (var index = 0; index < cactuses.length; index++) {
+                ctx.drawImage(cactus, cactuses[index].x, cactuses[index].y, cactus.width / cactus.height * cactuses[index].height, cactuses[index].height);
+            }
+        }
+        function Jump() {
+            if (jumping) {
+                frame++;
+                colider.y = ground + Math.abs(Math.pow((frame - frames / 2) / (frames / 2) * Math.sqrt(jumpHeight), 2)) - jumpHeight;
+                if (frame >= frames) {
+                    frame = 0;
+                    jumping = false;
+                }
+                Draw();
+            }
+        }
+        function Salto() {
+            if (salto) {
+                var ctx = document.getElementById("cnvs").getContext('2d');
+                frame++;
+                angle += 360 / frames;
+                if (frame >= frames) {
+                    frame = 0;
+                    salto = false;
+                    angle = 0;
+                }              
+                colider.y = ground + Math.abs(Math.pow((frame - frames / 2) / (frames / 2) * Math.sqrt(jumpHeight), 2)) - jumpHeight;                            
+                Draw();               
+            }
+        }
+        function Update() {
+            var rand = Math.random();
+            if (rand > 0.17 && rand < 0.2) {
+                var rand2 = Math.random();
+                if (cactuses.length == 0) {
+                    if (rand2 < 0.33) {
+                        var cactus = {
+                            x: cactusSpawnX,
+                            y: ground,
+                            width: a,
+                            height: a
+                        }
+                        cactuses.push(cactus);
+                    }
+                    if (rand2 > 0.33 && rand2 < 0.66) {
+                        var cactus = {
+                            x: cactusSpawnX,
+                            y: ground,
+                            width: a,
+                            height: a
+                        }
+                        var cactus2 = {
+                            x: cactusSpawnX-a,
+                            y: ground + a / 2,
+                            width: a/2,
+                            height: a/2
+                        }
+                        cactuses.push(cactus);
+                        cactuses.push(cactus2);
+                    }
+                    else {
+                        var cactus = {
+                            x: cactusSpawnX-a,
+                            y: ground + a /2,
+                            width: a/2,
+                            height: a/2
+                        }
+                        var cactus1 = {
+                            x: cactusSpawnX,
+                            y: ground,
+                            width: a,
+                            height: a
+                        }
+                        var cactus2 = {
+                            x: cactusSpawnX+a,
+                            y: ground+a/3,
+                            width: a / 1.5,
+                            height: a / 1.5
+                        }
+                        cactuses.push(cactus);
+                        cactuses.push(cactus1);
+                        cactuses.push(cactus2);
+                    }
+                }
+                if (cactuses.length > 0) {
+                    if (cactusSpawnX - cactuses[cactuses.length - 1].x > speed * 100) {
+                        var cactus = {
+                            x: cactusSpawnX,
+                            y: ground,
+                            width: a,
+                            height: a
+                        }
+                        cactuses.push(cactus);
+                    }
+                }
+            }
+            for (var index = 0; index < cactuses.length; index++) {
+                cactuses[index].x -= speed;
+                if (cactuses[index].x + cactuses[index].width < 0) {
+                    cactuses.splice(index, 1);
+                }
+            }
+            if (!jumping && !salto && !adjoin) {
+                if (resInd % 3 == 0 && tick % 5 == 0) {
+                    currentRes = walk1;
+                    resInd++;
+                }
+                if (resInd % 1 == 0 && tick % 5 == 0) {
+                    currentRes = walk2;
+                    resInd++;
+                }
+                if (resInd % 2 == 0 && tick % 5 == 0) {
+                    currentRes = walk3;
+                    resInd++;
+                }
+                Draw();
+            }
+            else {
+                currentRes = walk1;
+                Salto();
+                Jump();
+                resInd = 0;
+            }
+            tick++;
+        }
+        setInterval(Update, 10);
+    </script>
+</head>
+<body onload="Start()" style="overflow:hidden">
+    <canvas width="1920" height="1080" id="cnvs" />
+</body>
+</html>
