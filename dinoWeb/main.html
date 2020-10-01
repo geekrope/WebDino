@@ -22,6 +22,7 @@
         var tick = 0;
         var a = 100;
         var speed = 10;
+        var score = 0;
         const cactusSpawnX = 1920;
         let cactuses = [];
         var colider = {
@@ -61,11 +62,14 @@
             ctx.translate(colider.x + colider.width / 2, colider.y + colider.height / 2);
             ctx.rotate(angle / 180 * Math.PI);
             ctx.translate(-colider.x - colider.width / 2, -colider.y - colider.height / 2);
-            ctx.drawImage(currentRes, colider.x, colider.y, currentRes.width / currentRes.height * colider.height, colider.height);      
+            ctx.drawImage(currentRes, colider.x, colider.y, currentRes.width / currentRes.height * colider.height, colider.height);
             ctx.restore();
             for (var index = 0; index < cactuses.length; index++) {
                 ctx.drawImage(cactus, cactuses[index].x, cactuses[index].y, cactus.width / cactus.height * cactuses[index].height, cactuses[index].height);
             }
+            ctx.fillStyle = "#000000";
+            ctx.font = "24px ScoreFont";
+            ctx.fillText(score.toString(), 0, 24);
         }
         function Jump() {
             if (jumping) {
@@ -87,74 +91,55 @@
                     frame = 0;
                     salto = false;
                     angle = 0;
-                }              
-                colider.y = ground + Math.abs(Math.pow((frame - frames / 2) / (frames / 2) * Math.sqrt(jumpHeight), 2)) - jumpHeight;                            
-                Draw();               
+                }
+                colider.y = ground + Math.abs(Math.pow((frame - frames / 2) / (frames / 2) * Math.sqrt(jumpHeight), 2)) - jumpHeight;
+                Draw();
             }
+        }
+        function AddCactus(height, cactusSpawnx) {
+            var cactus2 = {
+                x: cactusSpawnx,
+                y: ground + (1-height/a)*a,
+                width: height * cactus.width / cactus.height,
+                height: height
+            }
+            cactuses.push(cactus2);
+        }
+        function GetCactusWidth(height) {
+            return height * cactus.width / cactus.height;
         }
         function Update() {
             var rand = Math.random();
-            if (rand > 0.17 && rand < 0.2) {
+            if (rand > 0.19 && rand < 0.2) {
                 var rand2 = Math.random();
                 if (cactuses.length == 0) {
                     if (rand2 < 0.33) {
-                        var cactus = {
-                            x: cactusSpawnX,
-                            y: ground,
-                            width: a,
-                            height: a
-                        }
-                        cactuses.push(cactus);
+                        AddCactus(a, cactusSpawnX);
                     }
                     if (rand2 > 0.33 && rand2 < 0.66) {
-                        var cactus = {
-                            x: cactusSpawnX,
-                            y: ground,
-                            width: a,
-                            height: a
-                        }
-                        var cactus2 = {
-                            x: cactusSpawnX-a,
-                            y: ground + a / 2,
-                            width: a/2,
-                            height: a/2
-                        }
-                        cactuses.push(cactus);
-                        cactuses.push(cactus2);
+                        AddCactus(a, cactusSpawnX);
+                        AddCactus(a / 1.5, cactusSpawnX + GetCactusWidth(a)+10);
                     }
                     else {
-                        var cactus = {
-                            x: cactusSpawnX-a,
-                            y: ground + a /2,
-                            width: a/2,
-                            height: a/2
-                        }
-                        var cactus1 = {
-                            x: cactusSpawnX,
-                            y: ground,
-                            width: a,
-                            height: a
-                        }
-                        var cactus2 = {
-                            x: cactusSpawnX+a,
-                            y: ground+a/3,
-                            width: a / 1.5,
-                            height: a / 1.5
-                        }
-                        cactuses.push(cactus);
-                        cactuses.push(cactus1);
-                        cactuses.push(cactus2);
+                        AddCactus(a/1.25, cactusSpawnX - GetCactusWidth(a/1.25)-10);
+                        AddCactus(a, cactusSpawnX);
+                        AddCactus(a / 1.5, cactusSpawnX + GetCactusWidth(a)+10);
                     }
                 }
                 if (cactuses.length > 0) {
                     if (cactusSpawnX - cactuses[cactuses.length - 1].x > speed * 100) {
-                        var cactus = {
-                            x: cactusSpawnX,
-                            y: ground,
-                            width: a,
-                            height: a
+                        if (rand2 < 0.33) {
+                            AddCactus(a, cactusSpawnX);
                         }
-                        cactuses.push(cactus);
+                        if (rand2 > 0.33 && rand2 < 0.66) {
+                            AddCactus(a, cactusSpawnX);
+                            AddCactus(a / 1.5, cactusSpawnX + GetCactusWidth(a) + 10);
+                        }
+                        else {
+                            AddCactus(a / 1.25, cactusSpawnX - GetCactusWidth(a / 1.25) - 10);
+                            AddCactus(a, cactusSpawnX);
+                            AddCactus(a / 1.5, cactusSpawnX + GetCactusWidth(a) + 10);
+                        }
                     }
                 }
             }
@@ -163,6 +148,10 @@
                 if (cactuses[index].x + cactuses[index].width < 0) {
                     cactuses.splice(index, 1);
                 }
+            }
+            if (tick % 5 == 0)
+            {
+                score += 1;
             }
             if (!jumping && !salto && !adjoin) {
                 if (resInd % 3 == 0 && tick % 5 == 0) {
@@ -189,6 +178,12 @@
         }
         setInterval(Update, 10);
     </script>
+    <style>
+        @font-face {
+            src: url("res/PressStart2P-Regular.ttf");
+            font-family:ScoreFont;
+        }
+    </style>
 </head>
 <body onload="Start()" style="overflow:hidden">
     <canvas width="1920" height="1080" id="cnvs" />
