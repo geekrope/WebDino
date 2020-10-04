@@ -17,12 +17,15 @@
         var walk2 = new Image();
         var walk3 = new Image();
         var cactus = new Image();
+        var groundImg = new Image();
         var currentRes = null;
         var resInd = 0;
         var tick = 0;
         var a = 100;
         var speed = 10;
         var score = 0;
+        var xOffset = 0;
+        var started = false;
         const cactusSpawnX = 1920;
         let cactuses = [];
         var colider = {
@@ -31,45 +34,84 @@
             width: a,
             height: a
         }
+        function IsImageOk(img) {
+            if (!img.complete) {
+                return false;
+            }
+            if (img.naturalWidth === 0) {
+                return false;
+            }            
+            return true;
+        }
+        function StartGame() {
+            var is1 = IsImageOk(walk1);
+            var is2 = IsImageOk(walk2);
+            var is3 = IsImageOk(walk3);
+            var is4 = IsImageOk(cactus);
+            var is5 = IsImageOk(groundImg);
+            if (is1 && is2 && is3 && is4 & is5 && !started) {
+                started = true;
+                setInterval(Update, 10);
+                colider = {
+                    x: 100,
+                    y: ground,
+                    width: a * walk1.width / walk1.height,
+                    height: a
+                }
+            }
+        }
         function LoadResources() {
             walk1.src = "dinoSprites/walk1.png";
             walk2.src = "dinoSprites/walk2.png";
             walk3.src = "dinoSprites/walk3.png";
             cactus.src = "dinoSprites/cactus1.png";
+            groundImg.src = "dinoSprites/ground.png";
+            walk1.onload = StartGame;
+            walk2.onload = StartGame;
+            walk3.onload = StartGame;
+            cactus.onload = StartGame;
+            groundImg.onload = StartGame;
         }
         function Start() {
             cactuses = [];
             LoadResources();
             var cnv = document.getElementById("cnvs");
             document.onkeydown = function (e) {
-                if (e.keyCode == "32") {
+                if (e.keyCode == "32" && !salto) {
                     jumping = true;
                 }
-                if (e.keyCode == "83") {
+                if (e.keyCode == "83" && !jumping) {
                     salto = true;
                 }
             }
         }
         function Draw() {
             var ctx = document.getElementById("cnvs").getContext('2d');
-            if (!night) {
-                ctx.fillStyle = "#ffffff";
-                ctx.fillRect(0, 0, innerWidth, innerHeight);
+            if (night && ctx.filter == "none") {
+                ctx.filter = "invert(1)";
             }
+            if (!night && !ctx.filter == "none") {
+                ctx.filter = "none";
+            }
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(0, 0, innerWidth, innerHeight);
+            var x1 = xOffset % groundImg.width;
+            ctx.drawImage(groundImg, x1, ground + a - groundImg.height);
+            ctx.drawImage(groundImg, x1 + groundImg.width, ground + a - groundImg.height);
             ctx.fillStyle = "#0000ff";
-            ctx.fillRect(colider.x, colider.y, colider.width, colider.height);
+            //ctx.fillRect(colider.x, colider.y, colider.width, colider.height);
+            for (var index = 0; index < cactuses.length; index++) {
+                ctx.drawImage(cactus, cactuses[index].x, cactuses[index].y, cactus.width / cactus.height * cactuses[index].height, cactuses[index].height);
+            }
             ctx.save();
             ctx.translate(colider.x + colider.width / 2, colider.y + colider.height / 2);
             ctx.rotate(angle / 180 * Math.PI);
             ctx.translate(-colider.x - colider.width / 2, -colider.y - colider.height / 2);
             ctx.drawImage(currentRes, colider.x, colider.y, currentRes.width / currentRes.height * colider.height, colider.height);
-            ctx.restore();
-            for (var index = 0; index < cactuses.length; index++) {
-                ctx.drawImage(cactus, cactuses[index].x, cactuses[index].y, cactus.width / cactus.height * cactuses[index].height, cactuses[index].height);
-            }
+            ctx.restore();            
             ctx.fillStyle = "#000000";
             ctx.font = "24px ScoreFont";
-            ctx.fillText(score.toString(), 0, 24);
+            ctx.fillText(score.toString(), 5, 29);         
         }
         function Jump() {
             if (jumping) {
@@ -110,6 +152,9 @@
         }
         function Update() {
             var rand = Math.random();
+            if (score % 1000 == 0) {
+                //night = !night;
+            }
             if (rand > 0.19 && rand < 0.2) {
                 var rand2 = Math.random();
                 if (cactuses.length == 0) {
@@ -126,12 +171,12 @@
                         AddCactus(a / 1.5, cactusSpawnX + GetCactusWidth(a)+10);
                     }
                 }
-                if (cactuses.length > 0) {
+                else if (cactuses.length > 0) {
                     if (cactusSpawnX - cactuses[cactuses.length - 1].x > speed * 100) {
                         if (rand2 < 0.33) {
                             AddCactus(a, cactusSpawnX);
                         }
-                        if (rand2 > 0.33 && rand2 < 0.66) {
+                        else if (rand2 > 0.33 && rand2 < 0.66) {
                             AddCactus(a, cactusSpawnX);
                             AddCactus(a / 1.5, cactusSpawnX + GetCactusWidth(a) + 10);
                         }
@@ -149,6 +194,7 @@
                     cactuses.splice(index, 1);
                 }
             }
+            xOffset -= speed;
             if (tick % 5 == 0)
             {
                 score += 1;
@@ -175,17 +221,24 @@
                 resInd = 0;
             }
             tick++;
-        }
-        setInterval(Update, 10);
+        }       
     </script>
     <style>
         @font-face {
             src: url("res/PressStart2P-Regular.ttf");
             font-family:ScoreFont;
         }
+        canvas {
+            image-rendering: optimizeSpeed; /* Older versions of FF          */
+            image-rendering: -moz-crisp-edges; /* FF 6.0+                       */
+            image-rendering: -webkit-optimize-contrast; /* Safari                        */
+            image-rendering: -o-crisp-edges; /* OS X & Windows Opera (12.02+) */
+            image-rendering: pixelated; /* Awesome future-browsers       */
+            -ms-interpolation-mode: nearest-neighbor; /* IE                            */
+        }
     </style>
 </head>
-<body onload="Start()" style="overflow:hidden">
-    <canvas width="1920" height="1080" id="cnvs" />
+<body onload="Start()" style="overflow:hidden;margin:0px;padding:0px">
+    <canvas width="1920" style="margin:0px;padding:0px" height="1080" id="cnvs" />
 </body>
 </html>
