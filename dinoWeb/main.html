@@ -4,6 +4,17 @@
     <meta charset="utf-8" />
     <title></title>
     <script>
+        class ptero {
+            constructor() {
+                colider = {
+                    x: 0,
+                    y: 0,
+                    width: 0,
+                    height: 0
+                }
+                state = 1;
+            }
+        }
         var jumping = false;
         var adjoin = false;
         var salto = false;
@@ -32,6 +43,7 @@
         const cactusSpawnX = 1920;
         let cactuses = [];
         let clouds = [];
+        let pteros = [];
         var colider = {
             x: 100,
             y: ground,
@@ -70,9 +82,9 @@
                     height: a
                 }
                 bounds = {
-                    x: 100 + a/4,
+                    x: 100 + a / 4,
                     y: ground + a / 4,
-                    width: a/2 * walk1.width / walk1.height,
+                    width: a / 2 * walk1.width / walk1.height,
                     height: a / 2
                 }
             }
@@ -93,7 +105,7 @@
         }
         function GameOver() {
             dead = true;
-            clearInterval(interval);            
+            clearInterval(interval);
         }
         function End(cactus) {
             if (cactus.y > bounds.y && cactus.y < bounds.y + bounds.height) {
@@ -155,7 +167,7 @@
             var x1 = xOffset % groundImg.width;
             ctx.drawImage(groundImg, x1, ground + a - groundImg.height);
             ctx.drawImage(groundImg, x1 + groundImg.width, ground + a - groundImg.height);
-            ctx.fillStyle = "#0000ff";           
+            ctx.fillStyle = "#0000ff";
             for (var index = 0; index < cactuses.length; index++) {
                 ctx.drawImage(cactus, cactuses[index].x, cactuses[index].y, cactuses[index].width, cactuses[index].height);
             }
@@ -176,13 +188,13 @@
             ctx.strokeStyle = "#ff0000";
             for (var index = 0; index < cactuses.length; index++) {
                 ctx.strokeRect(cactuses[index].x, cactuses[index].y, cactuses[index].width, cactuses[index].height);
-            }            
+            }
         }
         function Jump() {
             if (jumping) {
                 frame++;
                 colider.y = ground + Math.abs(Math.pow((frame - frames / 2) / (frames / 2) * Math.sqrt(jumpHeight), 2)) - jumpHeight;
-                bounds.y = colider.y + (a - bounds.height)/2;
+                bounds.y = colider.y + (a - bounds.height) / 2;
                 if (frame >= frames) {
                     frame = 0;
                     jumping = false;
@@ -241,8 +253,11 @@
             return height * cactus.width / cactus.height;
         }
         function Update() {
-            Kill()
-            speed += 0.01/30;
+            Kill();
+            if (dead) {
+                return;
+            }
+            speed += 0.01 / 30;
             var rand = Math.random();
             if (score % 1000 == 0) {
                 //night = !night;
@@ -264,7 +279,7 @@
                         AddCactus(a / 1.5, cactusSpawnX + GetCactusWidth(a) + 10);
                     }
                 }
-                else if (cactuses.length > 0) {
+                else if (cactuses.length > 0 && pteros.length == 0) {
                     if (cactusSpawnX - cactuses[cactuses.length - 1].x > speed * 100) {
                         if (rand2 < 0.33) {
                             AddCactus(a, cactusSpawnX);
@@ -280,7 +295,23 @@
                         }
                     }
                 }
-            }           
+                else if (cactuses.length > 0 && pteros.length > 0) {
+                    if (cactusSpawnX - cactuses[cactuses.length - 1].x > speed * 100 && cactusSpawnX - pteros[cactuses.length - 1].colider.x > speed * 100) {
+                        if (rand2 < 0.33) {
+                            AddCactus(a, cactusSpawnX);
+                        }
+                        else if (rand2 > 0.33 && rand2 < 0.66) {
+                            AddCactus(a, cactusSpawnX);
+                            AddCactus(a / 1.5, cactusSpawnX + GetCactusWidth(a) + 10);
+                        }
+                        else {
+                            AddCactus(a / 1.25, cactusSpawnX - GetCactusWidth(a / 1.25) - 10);
+                            AddCactus(a, cactusSpawnX);
+                            AddCactus(a / 1.5, cactusSpawnX + GetCactusWidth(a) + 10);
+                        }
+                    }
+                }
+            }
             for (var index = 0; index < cactuses.length; index++) {
                 cactuses[index].x -= speed;
                 if (cactuses[index].x + cactuses[index].width < 0) {
@@ -288,7 +319,7 @@
                 }
             }
             for (var index = 0; index < clouds.length; index++) {
-                clouds[index].x -= speed/4;
+                clouds[index].x -= speed / 4;
                 if (clouds[index].x + clouds[index].width < 0) {
                     clouds.splice(index, 1);
                 }
@@ -325,7 +356,7 @@
         @font-face {
             src: url("res/PressStart2P-Regular.ttf");
             font-family: ScoreFont;
-        }        
+        }
     </style>
 </head>
 <body onload="Start()" style="overflow:hidden;margin:0px;padding:0px">
