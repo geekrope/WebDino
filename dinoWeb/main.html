@@ -21,7 +21,10 @@
         var frame = 0;
         var night = false;
         const ground = 400;
-        var frames = 60;
+        var frames = 60;        
+        var startTick = 0;
+        var fps = 0;
+        var drawFps = 0;
         var jumpHeight = 250;
         var angle = 0;
         var interval = null;
@@ -154,6 +157,7 @@
             }
         }
         function Start() {
+            startTick = new Date().getTime();
             cactuses = [];
             clouds = [];
             pteros = [];
@@ -178,18 +182,18 @@
         }
         function Draw() {
             var ctx = document.getElementById("cnvs").getContext('2d');
+            ctx.fillStyle = "#ffffff";                    
+            ctx.fillRect(0, 0, innerWidth, innerHeight);
+            var x1 = xOffset % groundImg.width;
+            ctx.drawImage(groundImg, x1, ground + a - groundImg.height);
+            ctx.drawImage(groundImg, x1 + groundImg.width, ground + a - groundImg.height);
+            ctx.fillStyle = "#0000ff";
             if (night && ctx.filter == "none") {
                 ctx.filter = "invert(1)";
             }
             if (!night && !ctx.filter == "none") {
                 ctx.filter = "none";
             }
-            ctx.fillStyle = "#ffffff";
-            ctx.fillRect(0, 0, innerWidth, innerHeight);
-            var x1 = xOffset % groundImg.width;
-            ctx.drawImage(groundImg, x1, ground + a - groundImg.height);
-            ctx.drawImage(groundImg, x1 + groundImg.width, ground + a - groundImg.height);
-            ctx.fillStyle = "#0000ff";
             for (var index = 0; index < cactuses.length; index++) {
                 if (cactuses[index].x + cactuses[index].width > 0) {
                     ctx.drawImage(cactus, cactuses[index].x, cactuses[index].y, cactuses[index].width, cactuses[index].height);
@@ -217,7 +221,7 @@
             ctx.restore();
             ctx.fillStyle = "#000000";
             ctx.font = "24px ScoreFont";
-            ctx.fillText(score.toString(), 5, 29);
+            ctx.fillText(score.toString() + " fps - " + drawFps.toString(), 5, 29);
             ctx.strokeStyle = "#00ff00";
             ctx.strokeRect(bounds.x, bounds.y, bounds.width, bounds.height);
             ctx.strokeStyle = "#ff0000";
@@ -379,7 +383,7 @@
             }
             speed += 0.01 / 30;         
             if (score % 1000 == 0) {
-               
+                //night = !night;
             }
             CreateCloud();  
             CreateCactus();
@@ -432,6 +436,14 @@
                 resInd = 0;
             }
             tick++;
+            fps++;
+            var timeNow = new Date().getTime();            
+            if (timeNow - startTick >= 1000)
+            {
+                drawFps = fps;
+                fps = 0;
+                startTick = new Date().getTime();
+            }
         }
     </script>
     <style>
