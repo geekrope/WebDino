@@ -4,15 +4,15 @@
     <meta charset="utf-8" />
     <title></title>
     <script>
-        class ptero {
+        class Ptero {
             constructor() {
-                colider = {
+                this.colider = {
                     x: 0,
                     y: 0,
                     width: 0,
                     height: 0
                 }
-                state = 1;
+                this.state = 1;
             }
         }
         var jumping = false;
@@ -28,6 +28,8 @@
         var walk1 = new Image();
         var walk2 = new Image();
         var walk3 = new Image();
+        var pter2 = new Image();
+        var pter1 = new Image();
         var cactus = new Image();
         var groundImg = new Image();
         var cloud = new Image();
@@ -71,8 +73,10 @@
             var is3 = IsImageOk(walk3);
             var is4 = IsImageOk(cactus);
             var is5 = IsImageOk(groundImg);
-            var is6 = IsImageOk(cloud);
-            if (is1 && is2 && is3 && is4 & is5 && is6 && !started) {
+            var is6 = IsImageOk(cloud); 
+            var is7 = IsImageOk(pter1);
+            var is8 = IsImageOk(pter2);
+            if (is1 && is2 && is3 && is4 & is5 && is6 && is7 && is8 && !started) {
                 started = true;
                 interval = setInterval(Update, 10);
                 colider = {
@@ -96,12 +100,16 @@
             cactus.src = "dinoSprites/cactus1.png";
             groundImg.src = "dinoSprites/ground.png";
             cloud.src = "dinoSprites/cloud.png";
+            pter1.src = "dinoSprites/ptero1.png";
+            pter2.src = "dinoSprites/ptero1.png";
             walk1.onload = StartGame;
             walk2.onload = StartGame;
             walk3.onload = StartGame;
             cactus.onload = StartGame;
             groundImg.onload = StartGame;
             cloud.onload = StartGame;
+            pter1.onload = StartGame;
+            pter2.onload = StartGame;
         }
         function GameOver() {
             dead = true;
@@ -173,6 +181,10 @@
             }
             for (var index = 0; index < clouds.length; index++) {
                 ctx.drawImage(cloud, clouds[index].x, clouds[index].y, clouds[index].width, clouds[index].height);
+            }
+            for (var index = 0; index < pteros.length; index++) {
+                var colide = pteros[index].colider;
+                ctx.drawImage(pter1, colide.x, colide.y, colide.width, colide.height);
             }
             ctx.save();
             ctx.translate(colider.x + colider.width / 2, colider.y + colider.height / 2);
@@ -252,17 +264,8 @@
         function GetCactusWidth(height) {
             return height * cactus.width / cactus.height;
         }
-        function Update() {
-            Kill();
-            if (dead) {
-                return;
-            }
-            speed += 0.01 / 30;
+        function CreateCactus() {
             var rand = Math.random();
-            if (score % 1000 == 0) {
-                //night = !night;
-            }
-            CreateCloud();
             if (rand > 0.19 && rand < 0.2) {
                 var rand2 = Math.random();
                 if (cactuses.length == 0) {
@@ -280,7 +283,7 @@
                     }
                 }
                 else if (cactuses.length > 0 && pteros.length == 0) {
-                    if (cactusSpawnX - cactuses[cactuses.length - 1].x > speed * 100) {
+                    if (cactusSpawnX - cactuses[cactuses.length - 1].x > speed * 50) {
                         if (rand2 < 0.33) {
                             AddCactus(a, cactusSpawnX);
                         }
@@ -296,7 +299,7 @@
                     }
                 }
                 else if (cactuses.length > 0 && pteros.length > 0) {
-                    if (cactusSpawnX - cactuses[cactuses.length - 1].x > speed * 100 && cactusSpawnX - pteros[cactuses.length - 1].colider.x > speed * 100) {
+                    if (cactusSpawnX - cactuses[cactuses.length - 1].x > speed * 50 && cactusSpawnX - pteros[pteros.length - 1].colider.x > speed * 50) {
                         if (rand2 < 0.33) {
                             AddCactus(a, cactusSpawnX);
                         }
@@ -312,6 +315,48 @@
                     }
                 }
             }
+        }
+        function SpawnPtero() {
+            if (cactuses.length > 0) {
+                var rand = 0.195;
+                if (pteros.length == 0) {
+                    if (rand > 0.19 && rand < 0.2 && cactusSpawnX - cactuses[cactuses.length-1].x > speed * 100) {
+                        var pter = new Ptero();
+                        pter.colider = {
+                            x: cactusSpawnX,
+                            y: ground - Math.floor(Math.random() * 2) * a,
+                            width: pter1.width,
+                            height: pter1.height
+                        }
+                        pteros.push(pter);
+                    }
+                }
+                if (pteros.length > 0) {
+                    if (rand > 0.19 && rand < 0.2 && cactusSpawnX - pteros[pteros.length - 1].colider.x > speed * 100 && cactusSpawnX - cactuses[cactuses.length-1].x > speed * 100) {
+                        var pter = new Ptero();
+                        pter.colider = {
+                            x: cactusSpawnX,
+                            y: ground - Math.floor(Math.random() * 2) * a,
+                            width: pter1.width,
+                            height: pter1.height
+                        }
+                        pteros.push(pter);
+                    }
+                }
+            }
+        }
+        function Update() {
+            Kill();
+            if (dead) {
+                return;
+            }
+            speed += 0.01 / 30;         
+            if (score % 1000 == 0) {
+               
+            }
+            CreateCloud();  
+            CreateCactus();
+            SpawnPtero();
             for (var index = 0; index < cactuses.length; index++) {
                 cactuses[index].x -= speed;
                 if (cactuses[index].x + cactuses[index].width < 0) {
@@ -322,6 +367,12 @@
                 clouds[index].x -= speed / 4;
                 if (clouds[index].x + clouds[index].width < 0) {
                     clouds.splice(index, 1);
+                }
+            }
+            for (var index = 0; index < pteros.length; index++) {
+                pteros[index].colider.x -= speed +1;
+                if (pteros[index].colider.x + pteros[index].colider.width < 0) {
+                    pteros.splice(index, 1);
                 }
             }
             xOffset -= speed;
