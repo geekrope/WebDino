@@ -39,6 +39,7 @@
         var a = 100;
         var speed = 10;
         var score = 0;
+        var step = 10;
         var xOffset = 0;
         var started = false;
         var dead = false;
@@ -101,7 +102,7 @@
             groundImg.src = "dinoSprites/ground.png";
             cloud.src = "dinoSprites/cloud.png";
             pter1.src = "dinoSprites/ptero1.png";
-            pter2.src = "dinoSprites/ptero1.png";
+            pter2.src = "dinoSprites/ptero2.png";
             walk1.onload = StartGame;
             walk2.onload = StartGame;
             walk3.onload = StartGame;
@@ -177,14 +178,23 @@
             ctx.drawImage(groundImg, x1 + groundImg.width, ground + a - groundImg.height);
             ctx.fillStyle = "#0000ff";
             for (var index = 0; index < cactuses.length; index++) {
-                ctx.drawImage(cactus, cactuses[index].x, cactuses[index].y, cactuses[index].width, cactuses[index].height);
+                if (cactuses[index].x + cactuses[index].width > 0) {
+                    ctx.drawImage(cactus, cactuses[index].x, cactuses[index].y, cactuses[index].width, cactuses[index].height);
+                }               
             }
             for (var index = 0; index < clouds.length; index++) {
                 ctx.drawImage(cloud, clouds[index].x, clouds[index].y, clouds[index].width, clouds[index].height);
             }
             for (var index = 0; index < pteros.length; index++) {
-                var colide = pteros[index].colider;
-                ctx.drawImage(pter1, colide.x, colide.y, colide.width, colide.height);
+                if (pteros[index].colider.x + pteros[index].colider.width > 0) {
+                    var colide = pteros[index].colider;
+                    if (pteros[index].state == 1) {
+                        ctx.drawImage(pter1, colide.x, colide.y, colide.width, colide.height);
+                    }
+                    else {
+                        ctx.drawImage(pter2, colide.x, colide.y, colide.width, colide.height);
+                    }
+                }                
             }
             ctx.save();
             ctx.translate(colider.x + colider.width / 2, colider.y + colider.height / 2);
@@ -283,7 +293,7 @@
                     }
                 }
                 else if (cactuses.length > 0 && pteros.length == 0) {
-                    if (cactusSpawnX - cactuses[cactuses.length - 1].x > speed * 50) {
+                    if (cactusSpawnX - cactuses[cactuses.length - 1].x > step * 50) {
                         if (rand2 < 0.33) {
                             AddCactus(a, cactusSpawnX);
                         }
@@ -299,7 +309,7 @@
                     }
                 }
                 else if (cactuses.length > 0 && pteros.length > 0) {
-                    if (cactusSpawnX - cactuses[cactuses.length - 1].x > speed * 50 && cactusSpawnX - pteros[pteros.length - 1].colider.x > speed * 50) {
+                    if (cactusSpawnX - cactuses[cactuses.length - 1].x > step * 50 && cactusSpawnX - pteros[pteros.length - 1].colider.x > step * 100) {
                         if (rand2 < 0.33) {
                             AddCactus(a, cactusSpawnX);
                         }
@@ -311,20 +321,21 @@
                             AddCactus(a / 1.25, cactusSpawnX - GetCactusWidth(a / 1.25) - 10);
                             AddCactus(a, cactusSpawnX);
                             AddCactus(a / 1.5, cactusSpawnX + GetCactusWidth(a) + 10);
-                        }
+                        }                        
                     }
+                    console.log(cactusSpawnX - pteros[pteros.length - 1].colider.x);
                 }
             }
         }
         function SpawnPtero() {
             if (cactuses.length > 0) {
-                var rand = 0.195;
+                var rand = Math.random();
                 if (pteros.length == 0) {
-                    if (rand > 0.19 && rand < 0.2 && cactusSpawnX - cactuses[cactuses.length-1].x > speed * 100) {
+                    if (rand > 0.18 && rand < 0.2 && cactusSpawnX - cactuses[cactuses.length - 1].x > step * 100) {
                         var pter = new Ptero();
                         pter.colider = {
                             x: cactusSpawnX,
-                            y: ground - Math.floor(Math.random() * 2) * a,
+                            y: ground - Math.ceil(Math.random()) * 2 * a,
                             width: pter1.width,
                             height: pter1.height
                         }
@@ -332,7 +343,7 @@
                     }
                 }
                 if (pteros.length > 0) {
-                    if (rand > 0.19 && rand < 0.2 && cactusSpawnX - pteros[pteros.length - 1].colider.x > speed * 100 && cactusSpawnX - cactuses[cactuses.length-1].x > speed * 100) {
+                    if (rand > 0.19 && rand < 0.2 && cactusSpawnX - pteros[pteros.length - 1].colider.x > step * 100 && cactusSpawnX - cactuses[cactuses.length - 1].x > step * 100) {
                         var pter = new Ptero();
                         pter.colider = {
                             x: cactusSpawnX,
@@ -358,10 +369,7 @@
             CreateCactus();
             SpawnPtero();
             for (var index = 0; index < cactuses.length; index++) {
-                cactuses[index].x -= speed;
-                if (cactuses[index].x + cactuses[index].width < 0) {
-                    cactuses.splice(index, 1);
-                }
+                cactuses[index].x -= speed;                
             }
             for (var index = 0; index < clouds.length; index++) {
                 clouds[index].x -= speed / 4;
@@ -370,14 +378,21 @@
                 }
             }
             for (var index = 0; index < pteros.length; index++) {
-                pteros[index].colider.x -= speed +1;
-                if (pteros[index].colider.x + pteros[index].colider.width < 0) {
-                    pteros.splice(index, 1);
-                }
+                pteros[index].colider.x -= speed +1;               
             }
             xOffset -= speed;
             if (tick % 5 == 0) {
-                score += 1;
+                score += 1;                
+            }
+            if (tick % 20 == 0) {                
+                for (var index = 0; index < pteros.length; index++) {
+                    if (pteros[index].state == 2) {
+                        pteros[index].state = 1;
+                    }
+                    else {
+                        pteros[index].state = 2;
+                    }
+                }
             }
             if (!jumping && !salto && !adjoin) {
                 if (resInd % 3 == 0 && tick % 5 == 0) {
