@@ -223,6 +223,9 @@
             for (var index = 0; index < cactuses.length; index++) {
                 ctx.strokeRect(cactuses[index].x, cactuses[index].y, cactuses[index].width, cactuses[index].height);
             }
+            for (var index = 0; index < pteros.length; index++) {
+                ctx.strokeRect(pteros[index].colider.x, pteros[index].colider.y, pteros[index].colider.width, pteros[index].colider.height);
+            }
         }
         function Jump() {
             if (jumping) {
@@ -347,7 +350,7 @@
                         var pter = new Ptero();
                         pter.colider = {
                             x: cactusSpawnX,
-                            y: ground - Math.ceil(Math.random()) * 3 * a,
+                            y: ground - Math.ceil(Math.random()) * 2 * a,
                             width: pter1.width,
                             height: pter1.height
                         }
@@ -359,7 +362,7 @@
                         var pter = new Ptero();
                         pter.colider = {
                             x: cactusSpawnX,
-                            y: ground - Math.floor(Math.random() * 3) * a,
+                            y: ground - Math.floor(Math.random() * 2) * a,
                             width: pter1.width,
                             height: pter1.height
                         }
