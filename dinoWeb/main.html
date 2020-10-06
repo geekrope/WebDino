@@ -140,6 +140,18 @@
                     End(cactus);
                 }
             }
+            for (var index = 0; index < pteros.length; index++) {
+                var cactus = pteros[index].colider;
+                if (cactus.x > bounds.x && cactus.x < bounds.x + bounds.width) {
+                    End(cactus);
+                }
+                if (cactus.x + cactus.width > bounds.x && cactus.x + cactus.width < bounds.x + bounds.width) {
+                    End(cactus);
+                }
+                if (cactus.x <= bounds.x && cactus.x + cactus.width >= bounds.x + bounds.width) {
+                    End(cactus);
+                }
+            }
         }
         function Start() {
             cactuses = [];
@@ -335,7 +347,7 @@
                         var pter = new Ptero();
                         pter.colider = {
                             x: cactusSpawnX,
-                            y: ground - Math.ceil(Math.random()) * 2 * a,
+                            y: ground - Math.ceil(Math.random()) * 3 * a,
                             width: pter1.width,
                             height: pter1.height
                         }
@@ -347,7 +359,7 @@
                         var pter = new Ptero();
                         pter.colider = {
                             x: cactusSpawnX,
-                            y: ground - Math.floor(Math.random() * 2) * a,
+                            y: ground - Math.floor(Math.random() * 3) * a,
                             width: pter1.width,
                             height: pter1.height
                         }
